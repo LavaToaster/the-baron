@@ -1,0 +1,28 @@
+@model TheBaron.Views.Discord.Select
+@{
+    Layout = "_Layout";
+}
+
+<section class="space-y-2">
+    <h3 class="font-bold text-2xl">Hello @Model.DiscordName!</h3>
+    <p>Please select which account steam you'd like to use on the server.</p>
+</section>
+
+<form class="flex flex-col space-y-2" method="POST" action="@Url.Action("PostConfirm")">
+    @Html.AntiForgeryToken()
+    @foreach (var steamConnection in Model.SteamAccounts)
+    {
+        <button
+            class="bg-lime-600 hover:bg-lime-700 text-white font-bold py-2 rounded shadow-lg hover:shadow-xl transition duration-200"
+            name="AccountId"
+            value="@steamConnection.SteamId"
+            type="submit">
+            @steamConnection.Username
+        </button>
+    }
+</form>
+
+<a href="@Url.Action("SignOutCurrentUser", "Auth")"
+   class="block text-center bg-zinc-500 hover:bg-lime-700 text-white font-bold py-2 rounded shadow-lg hover:shadow-xl transition duration-200">
+    Sign Out
+</a>

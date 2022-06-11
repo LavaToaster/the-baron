@@ -1,0 +1,9 @@
+@model TheBaron.Views.Discord.Info
+@{
+    Layout = "_Layout";
+}
+
+<section class="space-y-2">
+    <h3 class="font-bold text-2xl">Hello @Model.DiscordName!</h3>
+    <p>Your account is linked to @Model.LinkedSteamAccount.Username.</p>
+</section>

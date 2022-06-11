@@ -1,0 +1,10 @@
+@model TheBaron.Views.Discord.Success
+@{
+    Layout = "_Layout";
+}
+
+<section class="space-y-2">
+    <h3 class="font-bold text-2xl">Thanks @Model.DiscordName!</h3>
+    <p>Your account has been linked to @Model.LinkedSteamAccount.Username.</p>
+    <p>You may now close this window.</p>
+</section>
