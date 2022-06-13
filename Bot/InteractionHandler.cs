@@ -8,13 +8,13 @@ namespace TheBaron.Bot;
 public class InteractionHandler
 {
     private readonly DiscordSocketClient _client;
-    private readonly IConfiguration _configuration;
+    private readonly Configuration _configuration;
     private readonly InteractionService _handler;
     private readonly ILogger<InteractionHandler> _logger;
     private readonly IServiceProvider _services;
 
     public InteractionHandler(DiscordSocketClient client, InteractionService handler, IServiceProvider services,
-        IConfiguration config, ILogger<InteractionHandler> logger)
+        Configuration config, ILogger<InteractionHandler> logger)
     {
         _client = client;
         _handler = handler;
@@ -29,8 +29,8 @@ public class InteractionHandler
         _client.Ready += ReadyAsync;
         _handler.Log += LogMapper.GetFunc(_logger);
 
-        // Add the public modules that inherit InteractionModuleBase<T> to the InteractionService
-        await _handler.AddModulesAsync(Assembly.GetEntryAssembly(), _services);
+        using var scope = _services.CreateScope();
+        await _handler.AddModulesAsync(Assembly.GetEntryAssembly(), scope.ServiceProvider);
 
         // Process the InteractionCreated payloads to execute Interactions commands
         _client.InteractionCreated += HandleInteraction;
@@ -41,7 +41,7 @@ public class InteractionHandler
         // Context & Slash commands can be automatically registered, but this process needs to happen after the client enters the READY state.
         // Since Global Commands take around 1 hour to register, we should use a test guild to instantly update and test our commands.
 # if DEBUG
-        var guildId = _configuration.GetValue<ulong>("Discord:TestGuildId");
+        var guildId = _configuration.GetGuildId();
 
         await _handler.RegisterCommandsToGuildAsync(guildId, deleteMissing: true);
 # else

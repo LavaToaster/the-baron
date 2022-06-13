@@ -1,5 +1,7 @@
 using Discord;
 using Discord.Interactions;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Routing;
 using TheBaron.Data;
 
 namespace TheBaron.Bot.Modules;
@@ -7,10 +9,12 @@ namespace TheBaron.Bot.Modules;
 public class SteamAccountLinkModule : InteractionModuleBase<SocketInteractionContext>
 {
     private readonly AppDbContext _context;
+    private readonly LinkGenerator _linkGenerator;
 
-    public SteamAccountLinkModule(AppDbContext context)
+    public SteamAccountLinkModule(AppDbContext context, LinkGenerator linkGenerator)
     {
         _context = context;
+        _linkGenerator = linkGenerator;
     }
 
     public InteractionService Commands { get; set; } = null!;
@@ -34,8 +38,16 @@ public class SteamAccountLinkModule : InteractionModuleBase<SocketInteractionCon
     [SlashCommand("setup-linker", "Put the button in")]
     public async Task SetupLinker()
     {
+        var urls = Environment.GetEnvironmentVariable("ASPNETCORE_URLS")?.Split(";");
+
+        if (urls == null || urls.Length == 0)
+        {
+            await RespondAsync("Cannot read urls", ephemeral: true);
+            return;
+        }
+
         var cb = new ComponentBuilder()
-            .WithButton("Link Account!", url: "https://localhost:7276/link/confirm", style: ButtonStyle.Link);
+            .WithButton("Link Account!", url: $"{urls[0]}{_linkGenerator.GetPathByAction("select", "Discord")}", style: ButtonStyle.Link);
 
         // Send a message with content 'pong', including a button.
         // This button needs to be build by calling .Build() before being passed into the call.

@@ -6,12 +6,12 @@ namespace TheBaron.Bot;
 public class BotService : IHostedService
 {
     private readonly DiscordSocketClient _client;
-    private readonly IConfiguration _configuration;
+    private readonly Configuration _configuration;
     private readonly InteractionHandler _handler;
     private readonly ILogger<BotService> _logger;
 
     public BotService(DiscordSocketClient client, InteractionHandler handler, ILogger<BotService> logger,
-        IConfiguration configuration)
+        Configuration configuration)
     {
         _handler = handler;
         _logger = logger;
@@ -25,7 +25,7 @@ public class BotService : IHostedService
     {
         await _handler.InitializeAsync();
 
-        var token = _configuration.GetValue<string>("Discord:Token");
+        var token = _configuration.GetToken();
 
         await _client.LoginAsync(TokenType.Bot, token);
         await _client.StartAsync();

@@ -1,3 +1,4 @@
+using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
 
@@ -8,7 +9,10 @@ public static class ServiceCollection
     public static IServiceCollection AddDiscord(this IServiceCollection services)
     {
         services.AddHostedService<BotService>();
-        services.AddSingleton<DiscordSocketClient>();
+        services.AddSingleton(new DiscordSocketClient(new DiscordSocketConfig
+        {
+            GatewayIntents = GatewayIntents.GuildMembers
+        }));
         services.AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()));
         services.AddSingleton<InteractionHandler>();
 

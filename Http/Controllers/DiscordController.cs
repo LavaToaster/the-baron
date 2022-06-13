@@ -15,23 +15,42 @@ public class DiscordController : Controller
 {
     private readonly DiscordRestClient _client;
     private readonly AppDbContext _context;
+    private readonly DiscordSocketClient _socketClient;
+    private readonly Configuration _configuration;
 
-    public DiscordController(DiscordRestClient client, AppDbContext context)
+    public DiscordController(DiscordRestClient client, AppDbContext context, DiscordSocketClient socketClient,
+        Configuration configuration)
     {
         _client = client;
         _context = context;
+        _socketClient = socketClient;
+        _configuration = configuration;
     }
 
     [HttpGet("select")]
     public async Task<IActionResult> Select()
     {
+        var member = await _socketClient.Rest.GetGuildUserAsync(_configuration.GetGuildId(), _client.CurrentUser.Id);
+
+        if (member == null)
+        {
+            return View("Error");
+        }
+
+        var canAccess = member.RoleIds.Intersect(_configuration.GetRoleIds()).Any();
+
+        if (!canAccess)
+        {
+            return View("NoRole");
+        }
+
         var user = await _context.Users.FindAsync(_client.CurrentUser.Id);
 
         if (user != null)
         {
             return RedirectToAction("Info");
         }
-        
+
         var steamAccounts = await GetSteamAccounts();
 
         var viewModel = new Select
@@ -39,7 +58,7 @@ public class DiscordController : Controller
             DiscordName = $"{_client.CurrentUser.Username}#{_client.CurrentUser.Discriminator}",
             SteamAccounts = steamAccounts,
         };
-        
+
         // if (!steamAccounts.Any()) return View();
         // if (steamAccounts.Count > 1) return View();
 
@@ -70,7 +89,7 @@ public class DiscordController : Controller
         });
 
         await _context.SaveChangesAsync();
-        
+
         return RedirectToAction("Success");
     }
 
@@ -83,7 +102,7 @@ public class DiscordController : Controller
         {
             return RedirectToAction("Select");
         }
-        
+
         var steamAccounts = await GetSteamAccounts();
         var steamAccount = steamAccounts.First(x => x.SteamId == user.SteamId)!;
 
@@ -93,7 +112,7 @@ public class DiscordController : Controller
             LinkedSteamAccount = steamAccount,
         });
     }
-    
+
     [HttpGet("info")]
     public async Task<IActionResult> Info()
     {
@@ -103,7 +122,7 @@ public class DiscordController : Controller
         {
             return RedirectToAction("Select");
         }
-        
+
         var steamAccounts = await GetSteamAccounts();
         var steamAccount = steamAccounts.First(x => x.SteamId == user.SteamId)!;
 
@@ -129,7 +148,6 @@ public class DiscordController : Controller
 
     public class SelectAccountForm
     {
-        [Required]
-        public ulong AccountId { get; set; }
+        [Required] public ulong AccountId { get; set; }
     }
 }
