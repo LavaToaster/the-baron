@@ -3,6 +3,7 @@ using Discord;
 using Discord.Rest;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using TheBaron;
 using TheBaron.Bot.Extensions;
 using TheBaron.Data;
 
@@ -20,6 +21,8 @@ builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddDbContext<AppDbContext>();
 builder.Services.AddDiscord();
+
+builder.Services.AddSingleton<Configuration>();
 
 builder.Services
     .AddAuthentication(options =>
